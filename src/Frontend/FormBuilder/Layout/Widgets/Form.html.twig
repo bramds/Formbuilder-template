@@ -1,0 +1,111 @@
+{# Note: we can use general variables names here since this template is parsed within its own scope #}
+{% import 'Core/Layout/Templates/Alerts.html.twig' as alerts %}
+{% import "Core/Layout/Templates/Macros.html.twig" as macro %}
+
+<section class="section-formbuilder section-editor" id="formbuilder{{ formName|ucfirst }}">
+    <div class="container-max container-fluid">
+        <div class="row row-formbuilder">
+    
+    <div class="offset-md-2 col-md-8 offset-lg-2 col-lg-8">
+      {% block widget_alerts %}
+        <div class="widget-alerts">
+          {% if successMessage %}
+            {{ alerts.alert('success', successMessage|raw, false, formName) }}
+          {% endif %}
+          {% if formBuilderError %}
+            {{ alerts.alert('danger', formBuilderError, false, formName) }}
+          {% endif %}
+        </div>
+      {% endblock %}
+
+      {% if fields %}
+        {% block widget_heading %}{% endblock %}
+        
+        
+
+        {% block widget_body %}
+          <div class="widget-body">
+            <form id="{{ formName }}" method="post" action="{{ formAction }}" novalidate="true">
+              <fieldset class="form">
+                {% if formToken %}
+                  <input type="hidden" name="form_token" id="formToken{{ formName|ucfirst }}" value="{{ formToken }}" />
+                {% endif %}
+
+                <input type="hidden" name="form" value="{{ formName }}" />
+                    
+                <div class="row">
+                  
+                {% for field in fields %}
+                      {# Headings and paragraphs #}
+                      {% if field.plaintext %}
+                        <div class="{{ field.classname }} col-md-12 form-content-html" id="field{{ field.name }}">
+                          {{ field.html|raw }}
+                        </div>
+                    
+                       {% else %} 
+                        <div class="{{ field.classname }}" id="field{{ field.name }}">
+                      
+
+                      {# Input field, textarea's and dropdowns #}
+                      {% if field.simple %}
+                      <div class="">
+                        <div class="form-group {% if field.error %} has-error{% endif %}">
+                          <label class="control-label" for="{{ field.name }}">
+                            {{ field.label|raw }}{% if field.required %}
+                            {{ macro.required }}{% endif %}
+                          </label>
+                          {{ field.html|raw }}
+                          {% if field.error %}<span class="text-danger help-inline">{{ field.error }}</span>{% endif %}
+                        </div>
+                      </div>
+                    
+                      {% endif %}
+
+                      {# Radiobuttons and checkboxes #}
+                      {% if field.multiple %}
+                       <div class="input-col-chkbx">
+                        <div class="form-group{% if field.error %} has-error{% endif %}">
+                          <p class="control-label">
+                            {{ field.label|raw }}{% if field.required %}
+                            {{ macro.required }}{% endif %}
+                          </p>
+                          {% for checkbox in field.html %}
+                            <div class="checkbox">
+                              <label for="{{ checkbox.id|raw }}">
+                                {{ checkbox.field|raw }} {{ checkbox.label|raw }}
+                              </label>
+                            </div>
+                          {% endfor %}
+                          {% if field.error %}<span class="text-danger help-inline">{{ field.error }}</span>{% endif %}
+                        </div>
+                      </div>
+                      {% endif %}
+                  </div>
+                    {% endif %}
+                {% endfor %}
+                <div class="col-md-12">
+                    <div class="form-actions">
+                      {% if hasRecaptchaField %}
+                        <script>
+                          function recaptcha{{ formToken }}Submitted (token, data) {
+                            document.getElementById("{{ formName }}").submit();
+                          }
+                        </script>
+                        <input type="submit" value="{{ submitValue }}" class="g-recaptcha inputSubmit btn form-submit" data-sitekey="{{ siteKey }}" data-callback="recaptcha{{ formToken }}Submitted" data-size="invisible" />
+                      {% else %}
+                        <input type="submit" value="{{ submitValue }}" name="submit" class="inputSubmit btn form-submit" />
+                      {% endif %}
+                    </div>
+                </div>
+                </div>      
+              </fieldset>
+            </form>
+          </div>
+        {% endblock %}
+
+        {% block widget_footer %}{% endblock %}
+      {% endif %}
+    </div>
+            </div>
+        </div>
+</section>
